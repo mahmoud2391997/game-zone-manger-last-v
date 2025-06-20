@@ -9,7 +9,11 @@ import { DollarSignIcon, FilterIcon, CreditCardIcon, BanknoteIcon, SmartphoneIco
 import { getTransactions, deleteTransaction } from '@/services/supabaseService';
 import { useToast } from '@/hooks/use-toast';
 
-const TransactionsManagement = () => {
+interface TransactionsManagementProps {
+  userRole?: string;
+}
+
+const TransactionsManagement = ({ userRole = 'admin' }: TransactionsManagementProps) => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [startDate, setStartDate] = useState('');
@@ -38,6 +42,15 @@ const TransactionsManagement = () => {
   }, []);
 
   const handleDelete = async (id: string) => {
+    if (userRole === 'cashier') {
+      toast({
+        title: "Access Denied",
+        description: "Cashiers cannot delete transactions",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!confirm('Are you sure you want to delete this transaction?')) return;
     
     try {
@@ -161,13 +174,15 @@ const TransactionsManagement = () => {
                     {Number(transaction.amount).toFixed(2)} EGP
                   </div>
                   
-                  <Button 
-                    size="sm" 
-                    variant="destructive" 
-                    onClick={() => handleDelete(transaction.id)}
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </Button>
+                  {userRole === 'admin' && (
+                    <Button 
+                      size="sm" 
+                      variant="destructive" 
+                      onClick={() => handleDelete(transaction.id)}
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

@@ -53,19 +53,19 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
       if (error) throw error;
 
       const userId = data.user?.id;
-      console.log(userId);
+      console.log('User ID:', userId);
 
-      // 🔍 Try to fetch the profile
+      // Try to fetch the profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', userId)
         .single();
-      console.log(data);
 
-      // 🚨 If profile missing or not found (status code 406 or 404)
+      // If profile is missing, create it with the selected role
       if (profileError && (profileError.code === 'PGRST116' || profileError.code === 'PGRST107')) {
-        // Optional: Auto-create profile if missing
+        console.log('Profile not found, creating new profile with role:', loginForm.role);
+        
         const { error: insertError } = await supabase
           .from('profiles')
           .insert({
@@ -74,36 +74,54 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
             role: loginForm.role,
           });
 
-        if (insertError) throw new Error("Failed to create user profile");
+        if (insertError) {
+          console.error('Profile creation error:', insertError);
+          throw new Error("Failed to create user profile: " + insertError.message);
+        }
+
+        // Use the role from the form since we just created the profile
+        const finalRole = loginForm.role;
+        
+        // Save credentials to sessionStorage (without password)
+        sessionStorage.setItem('gaming_center_credentials', JSON.stringify({
+          email: loginForm.email,
+          role: finalRole
+        }));
+
+        toast({
+          title: "Success",
+          description: `Logged in as ${finalRole}`,
+        });
+
+        onAuthSuccess();
+        return;
       }
 
-      // 🔁 Re-fetch after insert or use existing one
-      const { data: finalProfile, error: finalError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+        throw new Error('Failed to fetch user profile: ' + profileError.message);
+      }
 
-      if (finalError) throw new Error('Failed to fetch final profile');
-
-      if (finalProfile.role !== loginForm.role) {
+      // Check if the user's role matches what they selected
+      if (profile.role !== loginForm.role) {
         await supabase.auth.signOut();
-        throw new Error(`Access denied. You don't have ${loginForm.role} privileges.`);
+        throw new Error(`Access denied. You don't have ${loginForm.role} privileges. Your role is: ${profile.role}`);
       }
 
       // Save credentials to sessionStorage (without password)
       sessionStorage.setItem('gaming_center_credentials', JSON.stringify({
         email: loginForm.email,
-        role: loginForm.role
+        role: profile.role
       }));
 
       toast({
         title: "Success",
-        description: `Logged in as ${finalProfile.role}`,
+        description: `Logged in as ${profile.role}`,
       });
 
       onAuthSuccess();
     } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         title: "Error",
         description: error.message || "Login failed",
