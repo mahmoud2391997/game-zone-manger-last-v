@@ -1,12 +1,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GamepadIcon, ShoppingCartIcon, CalendarIcon, DollarSignIcon, ClipboardListIcon, CreditCardIcon } from 'lucide-react';
+import { GamepadIcon, ShoppingCartIcon, CalendarIcon, DollarSignIcon, ClipboardListIcon, CreditCardIcon, PackageIcon } from 'lucide-react';
 import RoomsGrid from '@/components/RoomsGrid';
 import AppointmentsManagement from '@/components/AppointmentsManagement';
 import CafeManagement from '@/components/CafeManagement';
 import CurrentOrders from '@/components/CurrentOrders';
 import TransactionsManagement from '@/components/TransactionsManagement';
+import OrdersManagement from '@/components/OrdersManagement';
 
 const CashierDashboard = () => {
   return (
@@ -58,7 +59,7 @@ const CashierDashboard = () => {
       </div>
 
       <Tabs defaultValue="rooms" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-0">
+        <TabsList className="grid w-full grid-cols-6 bg-slate-800 border-0">
           <TabsTrigger value="rooms" className="data-[state=active]:bg-blue-600 text-white">
             <GamepadIcon className="w-4 h-4 mr-2" />
             Rooms
@@ -66,6 +67,10 @@ const CashierDashboard = () => {
           <TabsTrigger value="current-orders" className="data-[state=active]:bg-green-600 text-white">
             <ClipboardListIcon className="w-4 h-4 mr-2" />
             Current Orders
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="data-[state=active]:bg-indigo-600 text-white">
+            <PackageIcon className="w-4 h-4 mr-2" />
+            Orders
           </TabsTrigger>
           <TabsTrigger value="appointments" className="data-[state=active]:bg-purple-600 text-white">
             <CalendarIcon className="w-4 h-4 mr-2" />
@@ -96,6 +101,10 @@ const CashierDashboard = () => {
           <CurrentOrders />
         </TabsContent>
 
+        <TabsContent value="orders">
+          <OrdersManagement />
+        </TabsContent>
+
         <TabsContent value="appointments">
           <AppointmentsManagement />
         </TabsContent>
@@ -105,7 +114,7 @@ const CashierDashboard = () => {
         </TabsContent>
 
         <TabsContent value="transactions">
-          <TransactionsManagement />
+          <TransactionsManagement userRole="cashier" />
         </TabsContent>
       </Tabs>
     </div>
